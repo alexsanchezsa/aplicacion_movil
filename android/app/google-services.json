@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "486220515995",
+    "project_id": "tfg-salesianos",
+    "storage_bucket": "tfg-salesianos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486220515995:android:611f7e71f866b9830a543e",
+        "android_client_info": {
+          "package_name": "com.example.aplicacion_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpQEo6VhrZXRUgpm5y-zyz-d9ytMb7z4Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
