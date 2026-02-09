@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplicacion_movil/service/mbtiles_download_service.dart';
-import 'package:aplicacion_movil/service/map_service.dart';
+import 'package:aplicacion_movil/service/maplibre_service.dart';
 
 /// Pantalla para descargar el mapa de España
 class MapDownloadScreen extends StatefulWidget {
@@ -14,7 +14,7 @@ class MapDownloadScreen extends StatefulWidget {
 
 class _MapDownloadScreenState extends State<MapDownloadScreen> {
   final _downloadService = MbTilesDownloadService();
-  final _mapService = MapService();
+  final _mapService = MapLibreService();
 
   bool _isDownloading = false;
   bool _isComplete = false;

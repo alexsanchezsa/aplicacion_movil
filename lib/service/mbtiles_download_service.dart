@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:crypto/crypto.dart';
 
 /// Servicio para descargar archivos MBTiles grandes desde un servidor
 class MbTilesDownloadService {
@@ -13,12 +13,11 @@ class MbTilesDownloadService {
       MbTilesDownloadService._internal();
   factory MbTilesDownloadService() => _instance;
   MbTilesDownloadService._internal();
-
   // CONFIGURACIÓN - CAMBIAR ESTA URL POR LA DE TU SERVIDOR
 
-  /// URL del archivo MBTiles en GitHub Releases
+  /// URL del archivo MBTiles en GitHub Releases (release mapFunctional v1.0)
   static const String _downloadUrl =
-      'https://github.com/alexsanchezsa/mbtiles-spain/releases/download/v1.0/spain.mbtiles';
+      'https://github.com/alexsanchezsa/aplicacion_movil/releases/download/v1.0/spain.mbtiles';
 
   /// Nombre del archivo local
   static const String _fileName = 'spain.mbtiles';
@@ -26,6 +25,10 @@ class MbTilesDownloadService {
   /// Tamaño esperado en bytes (para validar descarga completa)
   /// 1.5 GB aproximadamente
   static const int _expectedSizeBytes = 1607000000;
+
+  /// Hash esperado del archivo (sha256)
+  static const String _expectedSha256 =
+      'a8b1ff6f61c5f6b6120b0442fceae48e0e74d5ff4cf8f15999a8cf87779bb1a3';
 
   // ESTADO
   bool _isDownloading = false;
@@ -72,6 +75,14 @@ class MbTilesDownloadService {
         print(
           '[MbTilesDownload] ⚠️ Archivo muy pequeño, posiblemente corrupto',
         );
+        return false;
+      }
+
+      // Verificar hash para asegurar integridad
+      final isValidHash = await _verifyHash(file);
+      if (!isValidHash) {
+        print('[MbTilesDownload] ⚠️ Hash inválido, eliminando archivo');
+        await file.delete();
         return false;
       }
 
@@ -148,6 +159,13 @@ class MbTilesDownloadService {
 
       await sink.close();
 
+      // Verificar hash
+      final validHash = await _verifyHash(file);
+      if (!validHash) {
+        await file.delete();
+        throw Exception('Hash SHA-256 no coincide con el esperado');
+      }
+
       // Verificar descarga
       final finalSize = await file.length();
       print(
@@ -206,6 +224,20 @@ class MbTilesDownloadService {
   void dispose() {
     _progressController.close();
     _statusController.close();
+  }
+
+  /// Calcula y valida el hash SHA-256 de forma streaming (sin cargar en RAM)
+  Future<bool> _verifyHash(File file) async {
+    try {
+      final digest = await sha256.bind(file.openRead()).first;
+      final hex = digest.toString();
+      final match = hex == _expectedSha256;
+      print('[MbTilesDownload] 🔒 SHA256: $hex (match: $match)');
+      return match;
+    } catch (e) {
+      print('[MbTilesDownload] ❌ Error calculando hash: $e');
+      return false;
+    }
   }
 }
 

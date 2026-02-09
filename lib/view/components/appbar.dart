@@ -3,7 +3,6 @@ import 'package:aplicacion_movil/view/screens/mainScreen.dart';
 
 PreferredSizeWidget buildAppBar(
   BuildContext context, {
-  String title = 'AlertaVida - Gestión',
   bool showHomeAction = true,
 }) {
   return AppBar(
@@ -15,11 +14,9 @@ PreferredSizeWidget buildAppBar(
         children: [Icon(Icons.shield), Icon(Icons.favorite)],
       ),
     ),
-    title: Text(
-      title,
-      style: const TextStyle(color: Colors.white),
-    ),
+    title: Image.asset('assets/images/Logo_AppBar.png'),
     centerTitle: true,
+
     backgroundColor: const Color(0xFF2DA8E2),
     foregroundColor: Colors.white,
     elevation: 0,
