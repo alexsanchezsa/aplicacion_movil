@@ -1,6 +1,7 @@
 import 'package:aplicacion_movil/service/idiom_service.dart';
 import 'package:aplicacion_movil/view/components/appbar.dart';
 import 'package:aplicacion_movil/view/components/input_location.dart';
+import 'package:aplicacion_movil/view/components/medical_background.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -35,18 +36,11 @@ class _TriajeMedicoScreen extends State<TriajeMedicoScreeen> {
     return Scaffold(
       appBar: buildAppBar(context),
 
-      // 🎨 Fondo degradado moderno
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7DBCF7), Color(0xFF4292CC)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-          child: Column(
+      body: MedicalBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Logo superior
@@ -251,6 +245,7 @@ class _TriajeMedicoScreen extends State<TriajeMedicoScreeen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

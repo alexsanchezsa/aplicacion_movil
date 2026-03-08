@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:aplicacion_movil/service/idiom_service.dart';
+import 'package:aplicacion_movil/service/routing_service.dart';
+import 'package:aplicacion_movil/view/components/appbar.dart';
 import 'package:aplicacion_movil/service/maplibre_service.dart';
 import 'package:aplicacion_movil/service/local_tile_server.dart';
-import 'package:aplicacion_movil/view/screens/mainScreen.dart';
 import 'package:aplicacion_movil/view/components/HospitalMarkerMapLibre.dart';
 import 'package:aplicacion_movil/view/components/MarkerManagerMapLibre.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,7 @@ class MapSample extends StatefulWidget {
   State<MapSample> createState() => MapSampleState();
 }
 
-class MapSampleState extends State<MapSample> {
+class MapSampleState extends State<MapSample> with WidgetsBindingObserver {
   // Servicio singleton del mapa
   final MapLibreService _mapService = MapLibreService();
 
@@ -55,8 +57,13 @@ class MapSampleState extends State<MapSample> {
   List<Hospital> _hospitals = [];
   List<PersonMarker> _personMarkers = [];
 
+  // Ruta activa
+  Line? _routeLine;
+  bool _routeIsApproximate = false;
+
   // Subscripciones
   StreamSubscription<ll.LatLng>? _locationSubscription;
+  Timer? _syncTimer;
 
   @override
   void initState() {
@@ -77,6 +84,7 @@ class MapSampleState extends State<MapSample> {
         _personMarkers = markers;
         _updatePersonSymbols();
       },
+      onRouteRequested: (marker) => _drawRoute(marker),
     );
 
     // Escuchar cambios de ubicación del servicio
@@ -87,15 +95,34 @@ class MapSampleState extends State<MapSample> {
       _updateLocationMarker(position);
     });
 
+    WidgetsBinding.instance.addObserver(this);
+    _syncTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _markerManager.forceRefresh(),
+    );
     _init();
+  }
+
+  /// Cuando la app vuelve a primer plano, fuerza una consulta directa al
+  /// servidor para asegurar que el mapa tiene los datos más recientes,
+  /// incluyendo pacientes añadidos mientras la app estaba en segundo plano.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print('[MapScreen] 🔄 App resumida — sincronizando pacientes...');
+      _markerManager.forceRefresh();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _syncTimer?.cancel();
     _locationSubscription?.cancel();
     _connectivitySubscription?.cancel();
     _hospitalManager.dispose();
     _markerManager.dispose();
+    if (_routeLine != null) _mapController?.removeLine(_routeLine!);
     _mapController?.dispose();
     // No detenemos el servidor aquí porque es singleton
     super.dispose();
@@ -414,6 +441,12 @@ class MapSampleState extends State<MapSample> {
               ),
               iconImage: imageName,
               iconSize: 1.2,
+              textField: marker.evacuacionLabel,
+              textSize: 11,
+              textColor: '#FFFFFF',
+              textHaloColor: '#000000',
+              textHaloWidth: 1.5,
+              textOffset: const Offset(0, 2.0),
             ),
           );
           _personSymbols.add(symbol);
@@ -436,11 +469,123 @@ class MapSampleState extends State<MapSample> {
     await _updateHospitalSymbols();
   }
 
+  /// Dibuja la ruta más rápida desde la posición actual hasta [marker].
+  /// Con cobertura usa OSRM (ruta real por carreteras, evitando obstáculos).
+  /// Sin cobertura usa la última ruta cacheada para ese paciente.
+  /// Si no hay caché, muestra un error al usuario.
+  Future<void> _drawRoute(PersonMarker marker) async {
+    if (_mapController == null) return;
+
+    // Eliminar ruta anterior si existe
+    if (_routeLine != null) {
+      await _mapController!.removeLine(_routeLine!);
+      setState(() {
+        _routeLine = null;
+        _routeIsApproximate = false;
+      });
+    }
+
+    final origin = ll.LatLng(
+      _mapService.currentPosition.latitude,
+      _mapService.currentPosition.longitude,
+    );
+    final destination = marker.position;
+
+    RouteResult result;
+    try {
+      result = await RoutingService().getRoute(
+        origin: origin,
+        destination: destination,
+        isOnline: _isOnline,
+        cacheKey: marker.id,
+      );
+    } on OfflineRoutingException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            duration: const Duration(seconds: 4),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+      return;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al calcular la ruta. Inténtalo de nuevo.'),
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    final line = await _mapController!.addLine(
+      LineOptions(
+        geometry: result.points
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList(),
+        lineColor: '#0055FF',
+        lineWidth: 4.0,
+        lineOpacity: 0.85,
+      ),
+    );
+
+    setState(() {
+      _routeLine = line;
+      _routeIsApproximate = result.source == RouteSource.cached;
+    });
+
+    // Ajustar cámara para mostrar la ruta completa
+    await _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(
+            math.min(origin.latitude, destination.latitude),
+            math.min(origin.longitude, destination.longitude),
+          ),
+          northeast: LatLng(
+            math.max(origin.latitude, destination.latitude),
+            math.max(origin.longitude, destination.longitude),
+          ),
+        ),
+        left: 60,
+        top: 120,
+        right: 60,
+        bottom: 80,
+      ),
+    );
+
+    // Avisar si se está usando ruta cacheada (calculada con otra posición)
+    if (result.source == RouteSource.cached && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sin conexión — mostrando ruta calculada previamente'),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  /// Elimina la ruta activa del mapa.
+  Future<void> _clearRoute() async {
+    if (_routeLine != null && _mapController != null) {
+      await _mapController!.removeLine(_routeLine!);
+    }
+    setState(() {
+      _routeLine = null;
+      _routeIsApproximate = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
+      appBar: buildAppBar(context),
       body: Stack(
         children: [
           // Mapa
@@ -498,37 +643,6 @@ class MapSampleState extends State<MapSample> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(70),
-      child: AppBar(
-        leadingWidth: 80,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [Icon(Icons.shield), Icon(Icons.favorite)],
-          ),
-        ),
-        title: Text(LangService.text('app_title')),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF2DA8E2),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const Mainscreen()),
-              );
-            },
-            icon: const Icon(Icons.home),
-          ),
-        ],
       ),
     );
   }
@@ -633,6 +747,17 @@ class MapSampleState extends State<MapSample> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Botón de limpiar ruta (solo visible cuando hay ruta activa)
+          if (_routeLine != null) ...[
+            _FloatingButton(
+              icon: Icons.close,
+              tooltip: 'Limpiar ruta',
+              color: _routeIsApproximate ? Colors.orange : const Color(0xFF0055FF),
+            // naranja = ruta cacheada (sin conexión), azul = ruta en tiempo real
+              onTap: _clearRoute,
+            ),
+            const SizedBox(height: 12),
+          ],
           // Botón de centrar ubicación
           _FloatingButton(
             icon: Icons.my_location,

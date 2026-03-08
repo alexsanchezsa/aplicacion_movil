@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aplicacion_movil/service/mbtiles_download_service.dart';
 import 'package:aplicacion_movil/service/maplibre_service.dart';
+import 'package:aplicacion_movil/view/components/appbar.dart';
+import 'package:aplicacion_movil/view/components/medical_background.dart';
 
 /// Pantalla para descargar el mapa de España
 class MapDownloadScreen extends StatefulWidget {
@@ -95,11 +97,12 @@ class _MapDownloadScreenState extends State<MapDownloadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
+      appBar: buildAppBar(context),
+      body: MedicalBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Icono
@@ -231,6 +234,7 @@ class _MapDownloadScreenState extends State<MapDownloadScreen> {
                 ),
               ],
             ],
+            ),
           ),
         ),
       ),

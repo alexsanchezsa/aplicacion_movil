@@ -12,7 +12,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -24,10 +23,10 @@ class MyApp extends StatelessWidget {
             125,
             188,
             247,
-          ), // Azul base del fondo
+          ),
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: const Color(0xFF4292CC), // Fondo principal
+        scaffoldBackgroundColor: const Color(0xFF4292CC),
       ),
       home: const Loginscreen(),
     );

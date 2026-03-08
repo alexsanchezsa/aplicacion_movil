@@ -1,4 +1,5 @@
 import 'package:aplicacion_movil/service/idiom_service.dart';
+import 'package:aplicacion_movil/view/components/medical_background.dart';
 import 'package:aplicacion_movil/view/screens/personaScreen.dart';
 import 'package:aplicacion_movil/view/components/appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,15 +24,7 @@ class _ResumentriajeState extends State<Resumentriaje> {
     return Scaffold(
       appBar: buildAppBar(context),
 
-      // Fondo degradado coherente con el resto de la app
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7DBCF7), Color(0xFF4292CC)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      body: MedicalBackground(
         child: StreamBuilder<QuerySnapshot>(
           stream: _getPacientes(),
           builder: (context, snapshot) {
@@ -93,7 +86,7 @@ class _ResumentriajeState extends State<Resumentriaje> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 6,
                               offset: const Offset(0, 3),
                             ),

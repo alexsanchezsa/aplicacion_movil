@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:aplicacion_movil/view/components/medical_background.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';

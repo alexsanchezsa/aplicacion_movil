@@ -2,6 +2,7 @@ import 'package:aplicacion_movil/models/drone_camera.dart';
 import 'package:aplicacion_movil/service/drone_camera_service.dart';
 import 'package:aplicacion_movil/service/idiom_service.dart';
 import 'package:aplicacion_movil/view/components/appbar.dart';
+import 'package:aplicacion_movil/view/components/medical_background.dart';
 import 'package:aplicacion_movil/view/screens/drone_stream_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -201,21 +202,11 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: buildAppBar(context),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF7DBCF7), Color(0xFF4292CC)],
-          ),
-        ),
+      body: MedicalBackground(
         child: SafeArea(
           child: Column(
             children: [
-              // Header
               _buildHeader(),
-              
-              // Content
               Expanded(
                 child: _isLoading
                     ? _buildLoadingState()
@@ -245,14 +236,14 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(MdiIcons.drone, size: 40, color: Colors.white),
+              Icon(MdiIcons.drone, size: 40, color: const Color(0xFF1A73E8)),
               const SizedBox(width: 12),
               Text(
                 LangService.text('drone_cameras'),
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Color(0xFF1A3A5C),
                 ),
               ),
             ],
@@ -260,31 +251,27 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
           const SizedBox(height: 8),
           Text(
             LangService.text('select_camera'),
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.9),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF4A6080)),
           ),
           const SizedBox(height: 12),
-          // Botón de refresh
           InkWell(
             onTap: _refreshCameras,
             borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: const Color(0xFF1A73E8).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.refresh, color: Colors.white, size: 18),
+                  const Icon(Icons.refresh, color: Color(0xFF1A73E8), size: 18),
                   const SizedBox(width: 6),
                   Text(
                     LangService.text('refresh'),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1A73E8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -302,11 +289,11 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: Colors.white),
+          CircularProgressIndicator(color: Color(0xFF1A73E8)),
           SizedBox(height: 16),
           Text(
             'Cargando cámaras...',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Color(0xFF1A3A5C), fontSize: 16),
           ),
         ],
       ),
@@ -320,12 +307,12 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(MdiIcons.alertCircle, size: 64, color: Colors.white70),
+            Icon(MdiIcons.alertCircle, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 16),
             Text(
               LangService.text('error_loading_cameras'),
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1A3A5C),
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -334,7 +321,7 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
             const SizedBox(height: 8),
             Text(
               _error ?? '',
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              style: const TextStyle(color: Color(0xFF4A6080)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -343,8 +330,8 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
               icon: const Icon(Icons.refresh),
               label: Text(LangService.text('retry')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1A73E8),
+                backgroundColor: const Color(0xFF1A73E8),
+                foregroundColor: Colors.white,
               ),
             ),
           ],
@@ -360,12 +347,12 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(MdiIcons.cameraOff, size: 64, color: Colors.white70),
+            Icon(MdiIcons.cameraOff, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               LangService.text('no_cameras'),
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1A3A5C),
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -374,7 +361,7 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
             const SizedBox(height: 8),
             Text(
               LangService.text('add_camera_hint'),
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              style: const TextStyle(color: Color(0xFF4A6080)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -440,7 +427,7 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(0xFF1A3A5C),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -449,13 +436,13 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: const Color(0xFF1A73E8).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               count.toString(),
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1A73E8),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -486,9 +473,9 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: camera.isOnline 
-                      ? const Color(0xFF1A73E8).withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                  color: camera.isOnline
+                      ? const Color(0xFF1A73E8).withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Stack(
@@ -567,7 +554,7 @@ class _DroneCameraListScreenState extends State<DroneCameraListScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getTypeColor(camera.type).withOpacity(0.1),
+                            color: _getTypeColor(camera.type).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
