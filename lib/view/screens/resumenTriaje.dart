@@ -78,6 +78,10 @@ class _ResumentriajeState extends State<Resumentriaje> {
                       final recomendacion =
                           data['recomendacion'] ??
                           LangService.text('no_recommendations');
+                      final gravedad =
+                          data['estado'] ?? LangService.text('not_specified');
+                      final ubicacionTriaje = data['ubicacion_triaje'];
+                      final fecha = data['fecha'];
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -97,6 +101,88 @@ class _ResumentriajeState extends State<Resumentriaje> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // ⚠️ Gravedad
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                  color: _getSeverityColor(gravedad),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        gravedad,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // 📅 Fecha
+                              if (fecha != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.calendar_today,
+                                        color: Color(0xFF757575),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        _formatTimestamp(fecha),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF757575),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              // 📍 Coordenadas del triaje
+                              if (ubicacionTriaje != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on,
+                                        color: Color(0xFFE65100),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          'Lat: ${(ubicacionTriaje as GeoPoint).latitude.toStringAsFixed(5)}, '
+                                          'Lng: ${(ubicacionTriaje as GeoPoint).longitude.toStringAsFixed(5)}',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFF757575),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
                               // 🩹 Descripción de la herida
                               Row(
                                 children: [
@@ -201,5 +287,25 @@ class _ResumentriajeState extends State<Resumentriaje> {
         ),
       ),
     );
+  }
+
+  Color _getSeverityColor(String gravedad) {
+    if (gravedad.contains('🔴')) return const Color(0xFFFFCDD2);
+    if (gravedad.contains('🟠')) return const Color(0xFFFFE0B2);
+    if (gravedad.contains('🟡')) return const Color(0xFFFFF9C4);
+    if (gravedad.contains('🟢')) return const Color(0xFFC8E6C9);
+    return const Color(0xFFD7E9FF);
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp is Timestamp) {
+      final dt = timestamp.toDate();
+      return '${dt.day.toString().padLeft(2, '0')}/'
+          '${dt.month.toString().padLeft(2, '0')}/'
+          '${dt.year} '
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}';
+    }
+    return timestamp.toString();
   }
 }

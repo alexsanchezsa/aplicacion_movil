@@ -36,6 +36,7 @@
     "dynamic_recommendation_text": "Gomendio dinamikoaren testua",
     "dynamic_severity": "Larritasun dinamikoa",
     "dynamic_precautions": "Aurrezaintza dinamikoak",
+    "triage_saved": "Triajea behar bezala gorde da",
     "no_triages": "Ez dago triaje medikorik erregistratuta",
     "view_details": "Ikusi xehetasunak",
     "app_title": "AlertaVida - Kudeaketa",

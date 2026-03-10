@@ -36,6 +36,7 @@
     "dynamic_recommendation_text": "Texto de recomendação dinâmica",
     "dynamic_severity": "Gravidade dinâmica",
     "dynamic_precautions": "Precauções dinâmicas",
+    "triage_saved": "Triagem salva com sucesso",
     "no_triages": "Nenhuma triagem médica registrada",
     "view_details": "Ver detalhes",
     "app_title": "AlertaVida - Gestão",

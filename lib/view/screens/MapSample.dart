@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapSample extends StatefulWidget {
   const MapSample({super.key});
@@ -111,6 +112,8 @@ class MapSampleState extends State<MapSample> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       print('[MapScreen] 🔄 App resumida — sincronizando pacientes...');
       _markerManager.forceRefresh();
+      // Actualizar ubicación al volver para asegurar coordenadas frescas para el Triaje
+      _mapService.refreshLocation();
     }
   }
 
@@ -185,6 +188,9 @@ class MapSampleState extends State<MapSample> with WidgetsBindingObserver {
     print('[MapScreen] ⏳ Esperando MapLibreService...');
     await _mapService.waitUntilReady();
 
+    // Asegurar permisos y obtener coordenadas precisas (importante para Triaje)
+    await _requestLocationPermission();
+
     // Verificar estado del MBTiles
     print('[MapScreen] 📂 MBTiles disponible: ${_mapService.hasMbTiles}');
     print('[MapScreen] 📂 MBTiles path: ${_mapService.mbtilesPath}');
@@ -221,6 +227,20 @@ class MapSampleState extends State<MapSample> with WidgetsBindingObserver {
 
     sw.stop();
     print('[MapScreen] ✅ Pantalla lista en ${sw.elapsedMilliseconds}ms');
+  }
+
+  /// Solicita permisos y fuerza una actualización de ubicación
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      print(
+        '[MapScreen] ✅ Permiso concedido. Refrescando ubicación para Triaje...',
+      );
+      // Forzar actualización para tener coordenadas precisas
+      await _mapService.refreshLocation();
+    } else {
+      print('[MapScreen] ⚠️ Permiso de ubicación denegado');
+    }
   }
 
   /// Actualiza el marcador de ubicación
@@ -752,8 +772,10 @@ class MapSampleState extends State<MapSample> with WidgetsBindingObserver {
             _FloatingButton(
               icon: Icons.close,
               tooltip: 'Limpiar ruta',
-              color: _routeIsApproximate ? Colors.orange : const Color(0xFF0055FF),
-            // naranja = ruta cacheada (sin conexión), azul = ruta en tiempo real
+              color: _routeIsApproximate
+                  ? Colors.orange
+                  : const Color(0xFF0055FF),
+              // naranja = ruta cacheada (sin conexión), azul = ruta en tiempo real
               onTap: _clearRoute,
             ),
             const SizedBox(height: 12),

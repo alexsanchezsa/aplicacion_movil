@@ -19,13 +19,32 @@ class PacientesDao {
   }
 
   Future<void> updatePacienteState(String pacienteId, String newState) {
-    return _db
-        .collection('pacientes')
-        .doc(pacienteId)
-        .update({'estado': newState});
+    return _db.collection('pacientes').doc(pacienteId).update({
+      'estado': newState,
+    });
   }
 
   Future<void> deletePaciente(String pacienteId) {
     return _db.collection('pacientes').doc(pacienteId).delete();
+  }
+
+  /// Guarda un triaje médico completo en Firestore.
+  Future<DocumentReference> saveTriage({
+    required String herida,
+    required String recomendacion,
+    required String gravedad,
+    double? latitude,
+    double? longitude,
+  }) {
+    final data = <String, dynamic>{
+      'herida': herida,
+      'recomendacion': recomendacion,
+      'estado': gravedad,
+      'fecha': FieldValue.serverTimestamp(),
+    };
+    if (latitude != null && longitude != null) {
+      data['ubicacion_triaje'] = GeoPoint(latitude, longitude);
+    }
+    return _db.collection('pacientes').add(data);
   }
 }

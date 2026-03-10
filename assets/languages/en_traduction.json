@@ -36,6 +36,7 @@
     "dynamic_recommendation_text": "Dynamic recommendation text",
     "dynamic_severity": "Dynamic severity",
     "dynamic_precautions": "Dynamic precautions",
+    "triage_saved": "Triage saved successfully",
     "no_triages": "No medical triages registered",
     "view_details": "View details",
     "app_title": "AlertaVida - Management",
